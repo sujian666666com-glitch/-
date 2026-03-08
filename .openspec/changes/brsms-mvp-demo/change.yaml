@@ -1,0 +1,53 @@
+# Change: BRSMS MVP Demo
+
+## Metadata
+
+| Field | Value |
+|-------|-------|
+| **ID** | brsms-mvp-demo |
+| **Status** | draft |
+| **Created** | 2026-03-08 |
+| **Author** | 赵庆 |
+| **Scope** | backend, frontend, database |
+| **Impact** | low |
+| **Effort** | medium |
+
+## Summary
+
+构建球类比赛成绩统计与显示管理系统（BRSMS）的本地最小可运行 Demo，验证核心架构可行性。
+
+## Motivation
+
+根据 `/docs/开发文档.md` 中的完整系统设计，我们需要一个最小实现来：
+1. 验证技术栈选型的可行性
+2. 演示核心功能给指导老师看
+3. 为后续完整开发奠定基础
+
+## Scope
+
+### In Scope
+- 篮球比赛计分功能（单球类）
+- WebSocket 实时比分推送
+- 简单的大屏显示界面
+- SQLite 本地数据存储
+- 基础 REST API
+
+### Out of Scope
+- 多球类支持（排球、羽毛球、乒乓球）
+- 边缘网关层
+- 云端部署
+- 用户权限管理
+- 复杂的规则引擎（Lua）
+
+## Dependencies
+
+- Node.js >= 18
+- JDK >= 17
+- Maven 或 Gradle
+
+## Risks
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|------------|--------|------------|
+| 技术栈学习曲线 | Medium | Low | 使用熟悉的技术简化版 |
+| 时间不足 | Low | Medium | 聚焦 MVP 功能 |

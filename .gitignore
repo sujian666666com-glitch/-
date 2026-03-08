@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# IDE
+.cursor/
+.claude/
+
+# Node
+node_modules/
+
+# Build
+dist/
+build/
