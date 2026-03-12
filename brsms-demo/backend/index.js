@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { mkdirSync, existsSync } from 'fs';
+import { createDataRepository } from './dataRepository.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -49,6 +50,8 @@ db.exec(`
   INSERT OR IGNORE INTO teams (id, name) VALUES ('team-guest', '客队');
 `);
 
+const repository = createDataRepository({ dataDir, liveDb: db });
+
 // Express 应用
 const app = express();
 app.use(cors());
@@ -61,7 +64,7 @@ const clients = new Map();
 
 // 获取所有球队
 app.get('/api/teams', (req, res) => {
-  const teams = db.prepare('SELECT * FROM teams').all();
+  const teams = repository.getSetupTeams();
   res.json(teams);
 });
 
@@ -75,7 +78,7 @@ app.get('/api/matches', (req, res) => {
 app.get('/api/matches/:id', (req, res) => {
   const match = db.prepare('SELECT * FROM matches WHERE id = ?').get(req.params.id);
   if (match) {
-    res.json(match);
+    res.json(normalizeLiveMatch(match));
   } else {
     res.status(404).json({ error: '比赛不存在' });
   }
@@ -93,7 +96,7 @@ app.post('/api/matches', (req, res) => {
 
   const match = db.prepare('SELECT * FROM matches WHERE id = ?').get(id);
   console.log(`创建比赛: ${id}`);
-  res.json(match);
+  res.json(normalizeLiveMatch(match));
 });
 
 // 记录得分
@@ -124,7 +127,7 @@ app.post('/api/matches/:id/score', (req, res) => {
 
   // 广播更新
   broadcastUpdate(matchId, updatedMatch);
-  res.json(updatedMatch);
+  res.json(normalizeLiveMatch(updatedMatch));
 });
 
 // 撤销
@@ -153,7 +156,7 @@ app.post('/api/matches/:id/undo', (req, res) => {
   console.log(`撤销: ${lastEvent.team} -${lastEvent.value}`);
 
   broadcastUpdate(matchId, updatedMatch);
-  res.json(updatedMatch);
+  res.json(normalizeLiveMatch(updatedMatch));
 });
 
 // 切换节次
@@ -167,19 +170,100 @@ app.put('/api/matches/:id/quarter', (req, res) => {
   console.log(`切换节次: 第${quarter}节`);
 
   broadcastUpdate(matchId, updatedMatch);
-  res.json(updatedMatch);
+  res.json(normalizeLiveMatch(updatedMatch));
+});
+
+// 管理查询 API
+app.get('/api/manage/metadata', (req, res) => {
+  try {
+    const matches = repository.listManagedMatches();
+    const teams = repository.listManagedTeams();
+    const players = repository.listPlayers();
+    const standings = repository.listStandings();
+    const statistics = repository.listStatistics();
+    res.json({
+      minimumFields: repository.stats.minimumFields,
+      counts: {
+        matches: matches.length,
+        teams: teams.length,
+        players: players.length,
+        standings: standings.length,
+        statistics: statistics.length
+      }
+    });
+  } catch (error) {
+    handleRepositoryError(res, error);
+  }
+});
+
+app.get('/api/manage/matches', (req, res) => {
+  try {
+    const matches = repository.listManagedMatches(req.query);
+    res.json(matches);
+  } catch (error) {
+    handleRepositoryError(res, error);
+  }
+});
+
+app.get('/api/manage/matches/:id', (req, res) => {
+  try {
+    const match = repository.getManagedMatch(req.params.id);
+    if (!match) {
+      return res.status(404).json({ error: '比赛不存在' });
+    }
+    res.json(match);
+  } catch (error) {
+    handleRepositoryError(res, error);
+  }
+});
+
+app.get('/api/manage/teams', (req, res) => {
+  try {
+    const teams = repository.listManagedTeams(req.query);
+    res.json(teams);
+  } catch (error) {
+    handleRepositoryError(res, error);
+  }
+});
+
+app.get('/api/manage/players', (req, res) => {
+  try {
+    const players = repository.listPlayers(req.query);
+    res.json(players);
+  } catch (error) {
+    handleRepositoryError(res, error);
+  }
+});
+
+app.get('/api/manage/standings', (req, res) => {
+  try {
+    const standings = repository.listStandings(req.query);
+    res.json(standings);
+  } catch (error) {
+    handleRepositoryError(res, error);
+  }
+});
+
+app.get('/api/manage/statistics', (req, res) => {
+  try {
+    const statistics = repository.listStatistics(req.query);
+    res.json(statistics);
+  } catch (error) {
+    handleRepositoryError(res, error);
+  }
 });
 
 // WebSocket 广播
 function broadcastUpdate(matchId, match) {
+  const normalizedMatch = normalizeLiveMatch(match);
   const message = JSON.stringify({
     type: 'score_update',
     data: {
-      matchId: match.id,
-      homeScore: match.home_score,
-      guestScore: match.guest_score,
-      quarter: match.quarter,
-      status: match.status,
+      matchId: normalizedMatch.id,
+      homeScore: normalizedMatch.homeScore,
+      guestScore: normalizedMatch.guestScore,
+      quarter: normalizedMatch.quarter,
+      status: normalizedMatch.status,
       timestamp: Date.now()
     }
   });
@@ -189,6 +273,25 @@ function broadcastUpdate(matchId, match) {
     if (client.readyState === 1) {
       client.send(message);
     }
+  });
+}
+
+function normalizeLiveMatch(match) {
+  return {
+    id: match.id,
+    homeTeamId: match.home_team_id,
+    guestTeamId: match.guest_team_id,
+    homeScore: match.home_score,
+    guestScore: match.guest_score,
+    quarter: match.quarter,
+    status: match.status
+  };
+}
+
+function handleRepositoryError(res, error) {
+  const statusCode = error.statusCode ?? 500;
+  res.status(statusCode).json({
+    error: error.message ?? '管理数据查询失败'
   });
 }
 
@@ -223,7 +326,7 @@ wss.on('connection', (ws, req) => {
   });
 });
 
-const PORT = 3000;
+const PORT = Number(process.env.PORT || 3000);
 server.listen(PORT, () => {
   console.log(`BRSMS 后端运行在 http://localhost:${PORT}`);
   console.log(`WebSocket 运行在 ws://localhost:${PORT}/ws`);

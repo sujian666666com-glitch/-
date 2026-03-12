@@ -25,6 +25,9 @@
       <button class="btn btn-primary btn-lg" @click="startMatch">
         开始比赛
       </button>
+      <router-link class="btn btn-secondary" to="/manage">
+        进入成绩管理
+      </router-link>
     </div>
   </div>
 </template>
@@ -96,5 +99,16 @@ select {
 
 .actions {
   margin-top: 40px;
+  display: flex;
+  gap: 16px;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #243b53;
+  color: #fff;
+  text-decoration: none;
 }
 </style>

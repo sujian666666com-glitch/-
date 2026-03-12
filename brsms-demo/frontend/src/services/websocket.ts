@@ -1,79 +1,59 @@
-let ws = null;
-let matchId = null;
-let onMessageCallback = null;
+import {
+  changeQuarter,
+  createMatch,
+  getMatch,
+  getTeams,
+  getWebSocketUrl,
+  recordScore,
+  undoScore
+} from '@/services/api'
 
-export function connectWebSocket(mid, onMessage) {
-  matchId = mid;
-  onMessageCallback = onMessage;
+type ScoreUpdateMessage = {
+  type: 'score_update'
+  data: {
+    matchId: string
+    homeScore: number
+    guestScore: number
+    quarter: number
+    status: string
+    timestamp: number
+  }
+}
 
-  ws = new WebSocket('ws://localhost:3000/ws');
+let ws: WebSocket | null = null
+let matchId: string | null = null
+let onMessageCallback: ((message: ScoreUpdateMessage) => void) | null = null
+
+export function connectWebSocket(mid: string, onMessage: (message: ScoreUpdateMessage) => void) {
+  matchId = mid
+  onMessageCallback = onMessage
+
+  ws = new WebSocket(getWebSocketUrl())
 
   ws.onopen = () => {
-    console.log('WebSocket 已连接');
-    ws.send(JSON.stringify({ type: 'subscribe', matchId }));
-  };
+    console.log('WebSocket 已连接')
+    ws?.send(JSON.stringify({ type: 'subscribe', matchId }))
+  }
 
   ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    onMessageCallback(data);
-  };
+    const data = JSON.parse(event.data) as ScoreUpdateMessage
+    onMessageCallback?.(data)
+  }
 
   ws.onerror = (error) => {
-    console.error('WebSocket 错误:', error);
-  };
+    console.error('WebSocket 错误:', error)
+  }
 
   ws.onclose = () => {
-    console.log('WebSocket 已断开');
-  };
+    console.log('WebSocket 已断开')
+  }
 }
 
 export function disconnectWebSocket() {
   if (ws) {
-    ws.close();
-    ws = null;
+    ws.close()
+    ws = null
   }
 }
 
-export async function createMatch(homeTeamId, guestTeamId) {
-  const response = await fetch('http://localhost:3000/api/matches', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ homeTeamId, guestTeamId })
-  });
-  return response.json();
-}
-
-export async function getMatch(matchId) {
-  const response = await fetch(`http://localhost:3000/api/matches/${matchId}`);
-  return response.json();
-}
-
-export async function recordScore(matchId, team, points) {
-  const response = await fetch(`http://localhost:3000/api/matches/${matchId}/score`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ team, points })
-  });
-  return response.json();
-}
-
-export async function undoScore(matchId) {
-  const response = await fetch(`http://localhost:3000/api/matches/${matchId}/undo`, {
-    method: 'POST'
-  });
-  return response.json();
-}
-
-export async function changeQuarter(matchId, quarter) {
-  const response = await fetch(`http://localhost:3000/api/matches/${matchId}/quarter`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ quarter })
-  });
-  return response.json();
-}
-
-export async function getTeams() {
-  const response = await fetch('http://localhost:3000/api/teams');
-  return response.json();
-}
+export { createMatch, getMatch, recordScore, undoScore, changeQuarter, getTeams }

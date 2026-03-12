@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { connectWebSocket, disconnectWebSocket } from '@/services/websocket'
+import { connectWebSocket } from '@/services/websocket'
 
 export interface Match {
   id: string
