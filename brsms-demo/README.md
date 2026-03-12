@@ -103,3 +103,35 @@ brsms-demo/
 3. 进入计分控制台，点击得分按钮
 4. 点击"大屏显示"查看实时比分
 5. 点击“进入成绩管理”进入 `/manage`，查看比赛目录、球队/球员档案、积分榜与技术统计
+
+## 管理端页面
+
+- `/manage`：数据总览与最小字段说明
+- `/manage/matches`：比赛目录与详情入口
+- `/manage/teams`：球队档案与球员档案查询
+- `/manage/statistics`：积分榜与技术统计展示
+
+## 开发验证
+
+### 前端构建
+
+```bash
+cd frontend
+npm run build
+```
+
+### 后端启动检查
+
+```bash
+cd backend
+node --check index.js
+PORT=3300 node index.js
+```
+
+### 管理接口快速验证
+
+```bash
+curl http://localhost:3300/api/manage/metadata
+curl "http://localhost:3300/api/manage/matches?query=M00001"
+curl "http://localhost:3300/api/manage/standings"
+```
