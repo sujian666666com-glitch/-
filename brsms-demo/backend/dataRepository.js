@@ -53,6 +53,22 @@ function isValidRecord(record, fields) {
   return fields.every((field) => record[field] !== null && record[field] !== undefined && record[field] !== '');
 }
 
+function toNonNegativeInteger(value, fieldName) {
+  const numeric = Number(value);
+  if (!Number.isInteger(numeric) || numeric < 0) {
+    const error = new Error(`${fieldName} 必须为非负整数`);
+    error.statusCode = 400;
+    throw error;
+  }
+  return numeric;
+}
+
+function raiseValidation(message) {
+  const error = new Error(message);
+  error.statusCode = 400;
+  throw error;
+}
+
 export function createDataRepository({ dataDir, liveDb }) {
   const stats = {
     minimumFields: MINIMUM_DATA_FIELDS
@@ -125,12 +141,48 @@ export function createDataRepository({ dataDir, liveDb }) {
     return new Map(getReferenceTeams().map((team) => [team.id, team]));
   }
 
+  function listManualMatches() {
+    if (!canReadTable('manual_matches')) {
+      return [];
+    }
+
+    const teamsById = teamMap();
+    return managementDb
+      .prepare('SELECT * FROM manual_matches ORDER BY created_at DESC, id DESC')
+      .all()
+      .map((match) => {
+        const homeTeam = teamsById.get(match.home_team_id) ?? null;
+        const awayTeam = teamsById.get(match.away_team_id) ?? null;
+        return {
+          id: String(match.id),
+          sportType: match.sport_type ?? '篮球',
+          tournamentType: match.tournament_type ?? '未分类',
+          matchDate: match.match_date ?? null,
+          matchTime: null,
+          venue: match.venue ?? null,
+          homeTeamId: String(match.home_team_id),
+          awayTeamId: String(match.away_team_id),
+          homeTeamName: homeTeam?.name ?? String(match.home_team_id),
+          awayTeamName: awayTeam?.name ?? String(match.away_team_id),
+          homeScore: Number(match.home_score ?? 0),
+          awayScore: Number(match.away_score ?? 0),
+          winnerTeamId: match.winner_team_id ? String(match.winner_team_id) : null,
+          status: match.status ?? '已结束',
+          referee: null,
+          spectators: 0,
+          weather: null,
+          source: 'manual'
+        };
+      });
+  }
+
   function normalizeManagedMatches() {
     const teamsById = teamMap();
     const csvMatches = readCsv('matches');
+    const manualMatches = listManualMatches();
 
     if (csvMatches.length > 0) {
-      return csvMatches.map((match) => {
+      const normalizedCsvMatches = csvMatches.map((match) => {
         const homeTeam = teamsById.get(match.home_team_id) ?? null;
         const awayTeam = teamsById.get(match.away_team_id) ?? null;
         return {
@@ -150,12 +202,14 @@ export function createDataRepository({ dataDir, liveDb }) {
           status: match.status ?? '未知',
           referee: match.referee ?? null,
           spectators: Number(match.spectators ?? 0),
-          weather: match.weather ?? null
+          weather: match.weather ?? null,
+          source: 'csv'
         };
       });
+      return [...manualMatches, ...normalizedCsvMatches];
     }
 
-    return liveDb.prepare('SELECT * FROM matches').all().map((match) => ({
+    const liveMatches = liveDb.prepare('SELECT * FROM matches').all().map((match) => ({
       id: match.id,
       sportType: '篮球',
       tournamentType: '实时比赛',
@@ -173,8 +227,10 @@ export function createDataRepository({ dataDir, liveDb }) {
       referee: null,
       spectators: 0,
       weather: null,
-      quarter: Number(match.quarter ?? 1)
+      quarter: Number(match.quarter ?? 1),
+      source: 'live'
     }));
+    return [...manualMatches, ...liveMatches];
   }
 
   function normalizeTeams() {
@@ -259,7 +315,7 @@ export function createDataRepository({ dataDir, liveDb }) {
   function normalizeStatistics() {
     const playersById = new Map(normalizePlayers().map((player) => [player.id, player]));
     const teamsById = teamMap();
-    return readCsv('statistics').map((stat) => ({
+    const csvStatistics = readCsv('statistics').map((stat) => ({
       id: String(stat.stat_id),
       matchId: String(stat.match_id),
       playerId: String(stat.player_id),
@@ -274,8 +330,111 @@ export function createDataRepository({ dataDir, liveDb }) {
       blocks: Number(stat.blocks ?? 0),
       turnovers: Number(stat.turnovers ?? 0),
       efficiency: Number(stat.efficiency ?? 0),
-      rating: Number(stat.rating ?? 0)
+      rating: Number(stat.rating ?? 0),
+      source: 'csv'
     }));
+    const manualStatistics = canReadTable('manual_match_statistics')
+      ? managementDb
+          .prepare('SELECT * FROM manual_match_statistics ORDER BY created_at DESC, id DESC')
+          .all()
+          .map((stat) => ({
+            id: String(stat.id),
+            matchId: String(stat.match_id),
+            playerId: String(stat.player_id),
+            playerName: playersById.get(String(stat.player_id))?.name ?? String(stat.player_id),
+            teamId: String(stat.team_id),
+            teamName: teamsById.get(String(stat.team_id))?.name ?? String(stat.team_id),
+            minutesPlayed: 0,
+            points: Number(stat.points ?? 0),
+            rebounds: Number(stat.rebounds ?? 0),
+            assists: Number(stat.assists ?? 0),
+            steals: 0,
+            blocks: 0,
+            turnovers: 0,
+            efficiency: 0,
+            rating: 0,
+            source: 'manual'
+          }))
+      : [];
+    return [...manualStatistics, ...csvStatistics];
+  }
+
+  function nextManualMatchId() {
+    const ids = [
+      ...readCsv('matches').map((match) => String(match.match_id ?? '')),
+      ...liveDb.prepare('SELECT id FROM manual_matches').all().map((match) => String(match.id ?? ''))
+    ];
+    const maxNumber = ids.reduce((max, id) => {
+      const match = /^M(\d+)$/.exec(id);
+      return match ? Math.max(max, Number(match[1])) : max;
+    }, 0);
+    return `M${String(maxNumber + 1).padStart(5, '0')}`;
+  }
+
+  function validateManagedMatchInput(input) {
+    const teamsById = teamMap();
+    const playersById = new Map(normalizePlayers().map((player) => [player.id, player]));
+    const tournamentType = String(input?.tournamentType ?? '').trim();
+    const matchDate = String(input?.matchDate ?? '').trim();
+    const venue = String(input?.venue ?? '').trim();
+    const homeTeamId = String(input?.homeTeamId ?? '').trim();
+    const awayTeamId = String(input?.awayTeamId ?? '').trim();
+    const status = String(input?.status ?? '已结束').trim() || '已结束';
+
+    if (!tournamentType) {
+      raiseValidation('赛事类型不能为空');
+    }
+    if (!homeTeamId || !awayTeamId) {
+      raiseValidation('主队和客队不能为空');
+    }
+    if (homeTeamId === awayTeamId) {
+      raiseValidation('主队和客队不能相同');
+    }
+    if (!teamsById.has(homeTeamId) || !teamsById.has(awayTeamId)) {
+      raiseValidation('主队或客队不存在');
+    }
+
+    const homeScore = toNonNegativeInteger(input?.homeScore, '主队得分');
+    const awayScore = toNonNegativeInteger(input?.awayScore, '客队得分');
+    const allowedTeamIds = new Set([homeTeamId, awayTeamId]);
+    const statistics = Array.isArray(input?.statistics) ? input.statistics : [];
+    const normalizedStatistics = statistics.map((item, index) => {
+      const playerId = String(item?.playerId ?? '').trim();
+      const teamId = String(item?.teamId ?? '').trim();
+      if (!playerId || !teamId) {
+        raiseValidation(`第 ${index + 1} 行技术统计缺少球员或球队`);
+      }
+      if (!allowedTeamIds.has(teamId)) {
+        raiseValidation(`第 ${index + 1} 行技术统计的球队不属于本场比赛`);
+      }
+      const player = playersById.get(playerId);
+      if (!player) {
+        raiseValidation(`第 ${index + 1} 行技术统计的球员不存在`);
+      }
+      if (player.teamId !== teamId) {
+        raiseValidation(`第 ${index + 1} 行技术统计的球员不属于所选球队`);
+      }
+      return {
+        playerId,
+        teamId,
+        points: toNonNegativeInteger(item?.points ?? 0, `第 ${index + 1} 行得分`),
+        rebounds: toNonNegativeInteger(item?.rebounds ?? 0, `第 ${index + 1} 行篮板`),
+        assists: toNonNegativeInteger(item?.assists ?? 0, `第 ${index + 1} 行助攻`)
+      };
+    });
+
+    return {
+      tournamentType,
+      matchDate: matchDate || null,
+      venue: venue || null,
+      homeTeamId,
+      awayTeamId,
+      homeScore,
+      awayScore,
+      winnerTeamId: homeScore === awayScore ? null : homeScore > awayScore ? homeTeamId : awayTeamId,
+      status,
+      statistics: normalizedStatistics
+    };
   }
 
   function assertDataAvailable(records, resourceName) {
@@ -291,6 +450,54 @@ export function createDataRepository({ dataDir, liveDb }) {
     stats,
     getSetupTeams() {
       return listLiveTeams();
+    },
+    createManagedMatch(input) {
+      const data = validateManagedMatchInput(input);
+      const createMatch = liveDb.transaction(() => {
+        const matchId = nextManualMatchId();
+        liveDb
+          .prepare(
+            `INSERT INTO manual_matches (
+              id, sport_type, tournament_type, match_date, venue,
+              home_team_id, away_team_id, home_score, away_score, winner_team_id, status
+            ) VALUES (?, '篮球', ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .run(
+            matchId,
+            data.tournamentType,
+            data.matchDate,
+            data.venue,
+            data.homeTeamId,
+            data.awayTeamId,
+            data.homeScore,
+            data.awayScore,
+            data.winnerTeamId,
+            data.status
+          );
+
+        data.statistics.forEach((stat, index) => {
+          liveDb
+            .prepare(
+              `INSERT INTO manual_match_statistics (
+                id, match_id, player_id, team_id, points, rebounds, assists
+              ) VALUES (?, ?, ?, ?, ?, ?, ?)`
+            )
+            .run(
+              `${matchId}-S${String(index + 1).padStart(3, '0')}`,
+              matchId,
+              stat.playerId,
+              stat.teamId,
+              stat.points,
+              stat.rebounds,
+              stat.assists
+            );
+        });
+
+        return matchId;
+      });
+
+      const matchId = createMatch();
+      return this.getManagedMatch(matchId);
     },
     listManagedMatches(filters = {}) {
       const records = assertDataAvailable(normalizeManagedMatches(), '比赛');
@@ -367,7 +574,16 @@ export function createDataRepository({ dataDir, liveDb }) {
           const matchesSeason = !season || standing.season === season;
           return matchesSportType && matchesSeason;
         })
-        .sort((left, right) => left.rank - right.rank);
+        .sort((left, right) => {
+          if (right.points !== left.points) {
+            return right.points - left.points;
+          }
+          return left.teamName.localeCompare(right.teamName, 'zh-Hans-CN');
+        })
+        .map((standing, index) => ({
+          ...standing,
+          rank: index + 1
+        }));
     },
     listStatistics(filters = {}) {
       const records = assertDataAvailable(normalizeStatistics(), '技术统计');

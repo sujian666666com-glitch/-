@@ -46,6 +46,32 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
+  CREATE TABLE IF NOT EXISTS manual_matches (
+    id TEXT PRIMARY KEY,
+    sport_type TEXT DEFAULT '篮球',
+    tournament_type TEXT NOT NULL,
+    match_date TEXT,
+    venue TEXT,
+    home_team_id TEXT NOT NULL,
+    away_team_id TEXT NOT NULL,
+    home_score INTEGER DEFAULT 0,
+    away_score INTEGER DEFAULT 0,
+    winner_team_id TEXT,
+    status TEXT DEFAULT '已结束',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS manual_match_statistics (
+    id TEXT PRIMARY KEY,
+    match_id TEXT NOT NULL,
+    player_id TEXT NOT NULL,
+    team_id TEXT NOT NULL,
+    points INTEGER DEFAULT 0,
+    rebounds INTEGER DEFAULT 0,
+    assists INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
   INSERT OR IGNORE INTO teams (id, name) VALUES ('team-home', '主队');
   INSERT OR IGNORE INTO teams (id, name) VALUES ('team-guest', '客队');
 `);
@@ -200,6 +226,15 @@ app.get('/api/manage/matches', (req, res) => {
   try {
     const matches = repository.listManagedMatches(req.query);
     res.json(matches);
+  } catch (error) {
+    handleRepositoryError(res, error);
+  }
+});
+
+app.post('/api/manage/matches', (req, res) => {
+  try {
+    const match = repository.createManagedMatch(req.body);
+    res.status(201).json(match);
   } catch (error) {
     handleRepositoryError(res, error);
   }

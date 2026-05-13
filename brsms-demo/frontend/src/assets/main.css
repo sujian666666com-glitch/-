@@ -159,6 +159,70 @@ a {
   background: #fffaf2;
 }
 
+.entry-form {
+  margin-top: 20px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.form-grid label,
+.entry-table select,
+.entry-table input {
+  width: 100%;
+}
+
+.form-grid span {
+  display: block;
+  margin-bottom: 8px;
+  color: #6b5a48;
+  font-weight: 700;
+}
+
+.form-grid input,
+.form-grid select,
+.entry-table input,
+.entry-table select {
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #ccb89a;
+  background: #fffaf2;
+  color: #2c2520;
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.empty-note,
+.error-message {
+  margin-top: 16px;
+}
+
+.empty-note {
+  color: #6b5a48;
+}
+
+.error-message {
+  color: #9f2f21;
+  font-weight: 700;
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;

@@ -7,6 +7,7 @@
         <nav class="library-nav">
           <router-link to="/manage">总览</router-link>
           <router-link to="/manage/matches">比赛目录</router-link>
+          <router-link to="/manage/matches/new">录入成绩</router-link>
           <router-link to="/manage/teams">球队与球员</router-link>
           <router-link to="/manage/statistics">积分榜与统计</router-link>
         </nav>
@@ -17,6 +18,7 @@
         <div class="toolbar">
           <input v-model="query" placeholder="搜索比赛、队伍、场馆" />
           <button class="btn btn-primary" @click="loadMatches">查询</button>
+          <router-link class="btn btn-success" to="/manage/matches/new">录入成绩</router-link>
         </div>
 
         <table class="data-table">
