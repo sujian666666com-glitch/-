@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3';
+import { randomUUID } from 'crypto';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -69,6 +70,10 @@ function raiseValidation(message) {
   throw error;
 }
 
+function normalizeTeamName(name) {
+  return String(name ?? '').trim().replace(/\s+/g, ' ');
+}
+
 export function createDataRepository({ dataDir, liveDb }) {
   const stats = {
     minimumFields: MINIMUM_DATA_FIELDS
@@ -115,23 +120,53 @@ export function createDataRepository({ dataDir, liveDb }) {
     }));
   }
 
+  function listManualTeams() {
+    return liveDb
+      .prepare("SELECT * FROM teams WHERE id LIKE 'manual-team-%' ORDER BY name")
+      .all()
+      .map((team) => ({
+        id: team.id,
+        name: team.name
+      }));
+  }
+
+  function mergeTeams(...teamGroups) {
+    const teamsById = new Map();
+    teamGroups.flat().forEach((team) => {
+      if (!team?.id) {
+        return;
+      }
+      teamsById.set(String(team.id), {
+        id: String(team.id),
+        name: normalizeTeamName(team.name) || String(team.id)
+      });
+    });
+    return Array.from(teamsById.values());
+  }
+
   function getReferenceTeams() {
+    const manualTeams = listManualTeams();
+
     if (canReadTable('teams')) {
       const rows = managementDb.prepare('SELECT * FROM teams').all();
       if (rows.length > 2) {
-        return rows.map((team) => ({
+        const databaseTeams = rows.map((team) => ({
           id: team.id,
           name: team.name
         }));
+        return mergeTeams(databaseTeams, manualTeams);
       }
     }
 
     const csvTeams = readCsv('teams');
     if (csvTeams.length > 0) {
-      return csvTeams.map((team) => ({
-        id: team.team_id,
-        name: team.team_name
-      }));
+      return mergeTeams(
+        csvTeams.map((team) => ({
+          id: team.team_id,
+          name: team.team_name
+        })),
+        manualTeams
+      );
     }
 
     return listLiveTeams();
@@ -240,7 +275,7 @@ export function createDataRepository({ dataDir, liveDb }) {
 
     const csvTeams = readCsv('teams');
     if (csvTeams.length > 0) {
-      return csvTeams.map((team) => {
+      const normalizedCsvTeams = csvTeams.map((team) => {
         const standing = standingsByTeamId.get(String(team.team_id));
         return {
           id: String(team.team_id),
@@ -255,6 +290,22 @@ export function createDataRepository({ dataDir, liveDb }) {
           winRate: standing ? Number(standing.win_rate ?? 0) : null
         };
       });
+      const csvTeamIds = new Set(normalizedCsvTeams.map((team) => team.id));
+      const normalizedManualTeams = listManualTeams()
+        .filter((team) => !csvTeamIds.has(team.id))
+        .map((team) => ({
+          id: team.id,
+          name: team.name,
+          sportType: '篮球',
+          foundedYear: null,
+          coach: null,
+          city: null,
+          homeVenue: null,
+          rank: null,
+          points: null,
+          winRate: null
+        }));
+      return [...normalizedCsvTeams, ...normalizedManualTeams];
     }
 
     return listLiveTeams().map((team) => ({
@@ -371,27 +422,50 @@ export function createDataRepository({ dataDir, liveDb }) {
     return `M${String(maxNumber + 1).padStart(5, '0')}`;
   }
 
-  function validateManagedMatchInput(input) {
+  function resolveTeamId(teamId, teamName, fieldLabel) {
+    const normalizedTeamId = String(teamId ?? '').trim();
+    const normalizedTeamName = normalizeTeamName(teamName);
     const teamsById = teamMap();
+
+    if (normalizedTeamId) {
+      if (!teamsById.has(normalizedTeamId)) {
+        raiseValidation(`${fieldLabel}不存在`);
+      }
+      return normalizedTeamId;
+    }
+
+    if (!normalizedTeamName) {
+      raiseValidation(`${fieldLabel}不能为空`);
+    }
+
+    const existingTeam = Array.from(teamsById.values()).find(
+      (team) => normalizeTeamName(team.name) === normalizedTeamName
+    );
+    if (existingTeam) {
+      return existingTeam.id;
+    }
+
+    const newTeamId = `manual-team-${randomUUID()}`;
+    liveDb
+      .prepare('INSERT INTO teams (id, name) VALUES (?, ?)')
+      .run(newTeamId, normalizedTeamName);
+    return newTeamId;
+  }
+
+  function validateManagedMatchInput(input) {
     const playersById = new Map(normalizePlayers().map((player) => [player.id, player]));
     const tournamentType = String(input?.tournamentType ?? '').trim();
     const matchDate = String(input?.matchDate ?? '').trim();
     const venue = String(input?.venue ?? '').trim();
-    const homeTeamId = String(input?.homeTeamId ?? '').trim();
-    const awayTeamId = String(input?.awayTeamId ?? '').trim();
+    const homeTeamId = resolveTeamId(input?.homeTeamId, input?.homeTeamName, '主队');
+    const awayTeamId = resolveTeamId(input?.awayTeamId, input?.awayTeamName, '客队');
     const status = String(input?.status ?? '已结束').trim() || '已结束';
 
     if (!tournamentType) {
       raiseValidation('赛事类型不能为空');
     }
-    if (!homeTeamId || !awayTeamId) {
-      raiseValidation('主队和客队不能为空');
-    }
     if (homeTeamId === awayTeamId) {
       raiseValidation('主队和客队不能相同');
-    }
-    if (!teamsById.has(homeTeamId) || !teamsById.has(awayTeamId)) {
-      raiseValidation('主队或客队不存在');
     }
 
     const homeScore = toNonNegativeInteger(input?.homeScore, '主队得分');
@@ -452,8 +526,8 @@ export function createDataRepository({ dataDir, liveDb }) {
       return listLiveTeams();
     },
     createManagedMatch(input) {
-      const data = validateManagedMatchInput(input);
       const createMatch = liveDb.transaction(() => {
+        const data = validateManagedMatchInput(input);
         const matchId = nextManualMatchId();
         liveDb
           .prepare(

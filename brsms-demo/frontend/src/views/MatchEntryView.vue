@@ -38,19 +38,33 @@
                 <option value="待确认">待确认</option>
               </select>
             </label>
-            <label>
+            <label class="team-field">
               <span>主队</span>
-              <select v-model="form.homeTeamId" required>
-                <option value="">请选择主队</option>
-                <option v-for="team in teams" :key="team.id" :value="team.id">{{ team.name }}</option>
-              </select>
+              <div class="team-input-stack">
+                <select v-model="homeTeamInputMode" @change="resetTeamInput('home')">
+                  <option value="existing">选择已有球队</option>
+                  <option value="custom">自定义球队名称</option>
+                </select>
+                <select v-if="homeTeamInputMode === 'existing'" v-model="form.homeTeamId" required>
+                  <option value="">请选择主队</option>
+                  <option v-for="team in teams" :key="team.id" :value="team.id">{{ team.name }}</option>
+                </select>
+                <input v-else v-model.trim="form.homeTeamName" required placeholder="输入主队名称" />
+              </div>
             </label>
-            <label>
+            <label class="team-field">
               <span>客队</span>
-              <select v-model="form.awayTeamId" required>
-                <option value="">请选择客队</option>
-                <option v-for="team in teams" :key="team.id" :value="team.id">{{ team.name }}</option>
-              </select>
+              <div class="team-input-stack">
+                <select v-model="awayTeamInputMode" @change="resetTeamInput('away')">
+                  <option value="existing">选择已有球队</option>
+                  <option value="custom">自定义球队名称</option>
+                </select>
+                <select v-if="awayTeamInputMode === 'existing'" v-model="form.awayTeamId" required>
+                  <option value="">请选择客队</option>
+                  <option v-for="team in teams" :key="team.id" :value="team.id">{{ team.name }}</option>
+                </select>
+                <input v-else v-model.trim="form.awayTeamName" required placeholder="输入客队名称" />
+              </div>
             </label>
             <label>
               <span>主队得分</span>
@@ -146,12 +160,17 @@ type StatRow = {
   assists: number
 }
 
+type TeamInputMode = 'existing' | 'custom'
+type TeamSide = 'home' | 'away'
+
 const router = useRouter()
 const teams = ref<Team[]>([])
 const players = ref<Player[]>([])
 const statRows = ref<StatRow[]>([])
 const submitting = ref(false)
 const errorMessage = ref('')
+const homeTeamInputMode = ref<TeamInputMode>('existing')
+const awayTeamInputMode = ref<TeamInputMode>('existing')
 let nextRowId = 1
 
 const form = reactive({
@@ -159,7 +178,9 @@ const form = reactive({
   matchDate: new Date().toISOString().slice(0, 10),
   venue: '',
   homeTeamId: '',
+  homeTeamName: '',
   awayTeamId: '',
+  awayTeamName: '',
   homeScore: 0,
   awayScore: 0,
   status: '已结束'
@@ -173,12 +194,33 @@ onMounted(async () => {
   const [teamRows, playerRows] = await Promise.all([getManagedTeams(), getManagedPlayers()])
   teams.value = teamRows
   players.value = playerRows
-  form.homeTeamId = teams.value[0]?.id ?? ''
-  form.awayTeamId = teams.value[1]?.id ?? ''
+  form.homeTeamId = defaultExistingTeamId('home')
+  form.awayTeamId = defaultExistingTeamId('away')
 })
 
 function playersForTeam(teamId: string) {
   return players.value.filter((player) => player.teamId === teamId)
+}
+
+function normalizeTeamName(name: string) {
+  return name.trim().replace(/\s+/g, ' ')
+}
+
+function defaultExistingTeamId(side: TeamSide) {
+  if (side === 'away') {
+    return teams.value.find((team) => team.id !== form.homeTeamId)?.id ?? teams.value[0]?.id ?? ''
+  }
+  return teams.value[0]?.id ?? ''
+}
+
+function resetTeamInput(side: TeamSide) {
+  if (side === 'home') {
+    form.homeTeamId = homeTeamInputMode.value === 'existing' ? defaultExistingTeamId('home') : ''
+    form.homeTeamName = ''
+    return
+  }
+  form.awayTeamId = awayTeamInputMode.value === 'existing' ? defaultExistingTeamId('away') : ''
+  form.awayTeamName = ''
 }
 
 function addStatRow() {
@@ -198,10 +240,26 @@ function removeStatRow(localId: number) {
 }
 
 function validateForm() {
-  if (!form.homeTeamId || !form.awayTeamId) {
-    return '请选择主队和客队'
+  const homeTeamName = normalizeTeamName(form.homeTeamName)
+  const awayTeamName = normalizeTeamName(form.awayTeamName)
+  const homeTeamMissing = homeTeamInputMode.value === 'existing' ? !form.homeTeamId : !homeTeamName
+  const awayTeamMissing = awayTeamInputMode.value === 'existing' ? !form.awayTeamId : !awayTeamName
+
+  if (homeTeamMissing || awayTeamMissing) {
+    return '请选择或填写主队和客队'
   }
-  if (form.homeTeamId === form.awayTeamId) {
+  if (
+    homeTeamInputMode.value === 'existing' &&
+    awayTeamInputMode.value === 'existing' &&
+    form.homeTeamId === form.awayTeamId
+  ) {
+    return '主队和客队不能相同'
+  }
+  if (
+    homeTeamInputMode.value === 'custom' &&
+    awayTeamInputMode.value === 'custom' &&
+    homeTeamName === awayTeamName
+  ) {
     return '主队和客队不能相同'
   }
   const incompleteRow = statRows.value.find((row) => !row.teamId || !row.playerId)
@@ -220,7 +278,16 @@ async function submitMatch() {
   submitting.value = true
   try {
     const match = await createManagedMatch({
-      ...form,
+      tournamentType: form.tournamentType,
+      matchDate: form.matchDate,
+      venue: form.venue,
+      homeTeamId: homeTeamInputMode.value === 'existing' ? form.homeTeamId : '',
+      homeTeamName: homeTeamInputMode.value === 'custom' ? form.homeTeamName : '',
+      awayTeamId: awayTeamInputMode.value === 'existing' ? form.awayTeamId : '',
+      awayTeamName: awayTeamInputMode.value === 'custom' ? form.awayTeamName : '',
+      homeScore: form.homeScore,
+      awayScore: form.awayScore,
+      status: form.status,
       statistics: statRows.value.map(({ teamId, playerId, points, rebounds, assists }) => ({
         teamId,
         playerId,
