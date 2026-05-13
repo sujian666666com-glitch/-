@@ -74,6 +74,10 @@ function normalizeTeamName(name) {
   return String(name ?? '').trim().replace(/\s+/g, ' ');
 }
 
+function normalizePersonName(name) {
+  return String(name ?? '').trim().replace(/\s+/g, ' ');
+}
+
 export function createDataRepository({ dataDir, liveDb }) {
   const stats = {
     minimumFields: MINIMUM_DATA_FIELDS
@@ -113,6 +117,13 @@ export function createDataRepository({ dataDir, liveDb }) {
     return Boolean(row);
   }
 
+  function canReadLiveTable(tableName) {
+    const row = liveDb
+      .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+      .get(tableName);
+    return Boolean(row);
+  }
+
   function listLiveTeams() {
     return liveDb.prepare('SELECT * FROM teams').all().map((team) => ({
       id: team.id,
@@ -127,6 +138,31 @@ export function createDataRepository({ dataDir, liveDb }) {
       .map((team) => ({
         id: team.id,
         name: team.name
+      }));
+  }
+
+  function listManualPlayers() {
+    if (!canReadLiveTable('manual_players')) {
+      return [];
+    }
+    const teamsById = teamMap();
+    return liveDb
+      .prepare('SELECT * FROM manual_players ORDER BY created_at DESC, id DESC')
+      .all()
+      .map((player) => ({
+        id: String(player.id),
+        name: normalizePersonName(player.name) || String(player.id),
+        teamId: String(player.team_id),
+        teamName: teamsById.get(String(player.team_id))?.name ?? String(player.team_id),
+        sportType: '篮球',
+        position: null,
+        jerseyNumber: null,
+        birthDate: null,
+        heightCm: null,
+        weightKg: null,
+        nationality: null,
+        joinDate: null,
+        status: '手工录入'
       }));
   }
 
@@ -324,7 +360,7 @@ export function createDataRepository({ dataDir, liveDb }) {
 
   function normalizePlayers() {
     const teamsById = teamMap();
-    return readCsv('players').map((player) => ({
+    const csvPlayers = readCsv('players').map((player) => ({
       id: String(player.player_id),
       name: player.player_name ?? String(player.player_id),
       teamId: String(player.team_id),
@@ -339,6 +375,9 @@ export function createDataRepository({ dataDir, liveDb }) {
       joinDate: player.join_date ?? null,
       status: player.status ?? null
     }));
+    const csvPlayerIds = new Set(csvPlayers.map((player) => player.id));
+    const manualPlayers = listManualPlayers().filter((player) => !csvPlayerIds.has(player.id));
+    return [...manualPlayers, ...csvPlayers];
   }
 
   function normalizeStandings() {
@@ -452,8 +491,53 @@ export function createDataRepository({ dataDir, liveDb }) {
     return newTeamId;
   }
 
+  function resolveStatisticTeamId(item, homeTeamId, awayTeamId, index) {
+    const teamSide = String(item?.teamSide ?? '').trim();
+    if (teamSide === 'home') {
+      return homeTeamId;
+    }
+    if (teamSide === 'away') {
+      return awayTeamId;
+    }
+    return resolveTeamId(item?.teamId, item?.teamName, `第 ${index + 1} 行技术统计的球队`);
+  }
+
+  function resolvePlayerId(item, teamId, index) {
+    const playerId = String(item?.playerId ?? '').trim();
+    const playerName = normalizePersonName(item?.playerName);
+    const players = normalizePlayers();
+    const playersById = new Map(players.map((player) => [player.id, player]));
+
+    if (playerId) {
+      const player = playersById.get(playerId);
+      if (!player) {
+        raiseValidation(`第 ${index + 1} 行技术统计的球员不存在`);
+      }
+      if (player.teamId !== teamId) {
+        raiseValidation(`第 ${index + 1} 行技术统计的球员不属于所选球队`);
+      }
+      return playerId;
+    }
+
+    if (!playerName) {
+      raiseValidation(`第 ${index + 1} 行技术统计缺少球员`);
+    }
+
+    const existingPlayer = players.find(
+      (player) => player.teamId === teamId && normalizePersonName(player.name) === playerName
+    );
+    if (existingPlayer) {
+      return existingPlayer.id;
+    }
+
+    const newPlayerId = `manual-player-${randomUUID()}`;
+    liveDb
+      .prepare('INSERT INTO manual_players (id, name, team_id) VALUES (?, ?, ?)')
+      .run(newPlayerId, playerName, teamId);
+    return newPlayerId;
+  }
+
   function validateManagedMatchInput(input) {
-    const playersById = new Map(normalizePlayers().map((player) => [player.id, player]));
     const tournamentType = String(input?.tournamentType ?? '').trim();
     const matchDate = String(input?.matchDate ?? '').trim();
     const venue = String(input?.venue ?? '').trim();
@@ -473,21 +557,11 @@ export function createDataRepository({ dataDir, liveDb }) {
     const allowedTeamIds = new Set([homeTeamId, awayTeamId]);
     const statistics = Array.isArray(input?.statistics) ? input.statistics : [];
     const normalizedStatistics = statistics.map((item, index) => {
-      const playerId = String(item?.playerId ?? '').trim();
-      const teamId = String(item?.teamId ?? '').trim();
-      if (!playerId || !teamId) {
-        raiseValidation(`第 ${index + 1} 行技术统计缺少球员或球队`);
-      }
+      const teamId = resolveStatisticTeamId(item, homeTeamId, awayTeamId, index);
       if (!allowedTeamIds.has(teamId)) {
         raiseValidation(`第 ${index + 1} 行技术统计的球队不属于本场比赛`);
       }
-      const player = playersById.get(playerId);
-      if (!player) {
-        raiseValidation(`第 ${index + 1} 行技术统计的球员不存在`);
-      }
-      if (player.teamId !== teamId) {
-        raiseValidation(`第 ${index + 1} 行技术统计的球员不属于所选球队`);
-      }
+      const playerId = resolvePlayerId(item, teamId, index);
       return {
         playerId,
         teamId,

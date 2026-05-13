@@ -95,20 +95,27 @@
             <tbody>
               <tr v-for="row in statRows" :key="row.localId">
                 <td>
-                  <select v-model="row.teamId" @change="row.playerId = ''">
+                  <select v-model="row.teamSide" @change="resetStatPlayer(row)">
                     <option value="">选择球队</option>
-                    <option v-for="team in selectedTeams" :key="team.id" :value="team.id">
+                    <option v-for="team in matchTeams" :key="team.side" :value="team.side">
                       {{ team.name }}
                     </option>
                   </select>
                 </td>
                 <td>
-                  <select v-model="row.playerId">
-                    <option value="">选择球员</option>
-                    <option v-for="player in playersForTeam(row.teamId)" :key="player.id" :value="player.id">
-                      {{ player.name }}
-                    </option>
-                  </select>
+                  <div class="team-input-stack">
+                    <select v-model="row.playerInputMode" @change="resetStatPlayer(row)">
+                      <option value="existing">选择已有球员</option>
+                      <option value="custom">自定义球员姓名</option>
+                    </select>
+                    <select v-if="row.playerInputMode === 'existing'" v-model="row.playerId">
+                      <option value="">选择球员</option>
+                      <option v-for="player in playersForMatchTeam(row.teamSide)" :key="player.id" :value="player.id">
+                        {{ player.name }}
+                      </option>
+                    </select>
+                    <input v-else v-model.trim="row.playerName" placeholder="输入球员姓名" />
+                  </div>
                 </td>
                 <td><input v-model.number="row.points" min="0" type="number" /></td>
                 <td><input v-model.number="row.rebounds" min="0" type="number" /></td>
@@ -153,8 +160,10 @@ type Player = {
 
 type StatRow = {
   localId: number
-  teamId: string
+  teamSide: TeamSide | ''
   playerId: string
+  playerName: string
+  playerInputMode: PlayerInputMode
   points: number
   rebounds: number
   assists: number
@@ -162,6 +171,7 @@ type StatRow = {
 
 type TeamInputMode = 'existing' | 'custom'
 type TeamSide = 'home' | 'away'
+type PlayerInputMode = 'existing' | 'custom'
 
 const router = useRouter()
 const teams = ref<Team[]>([])
@@ -186,9 +196,24 @@ const form = reactive({
   status: '已结束'
 })
 
-const selectedTeams = computed(() =>
-  teams.value.filter((team) => team.id === form.homeTeamId || team.id === form.awayTeamId)
-)
+const matchTeams = computed(() => [
+  {
+    side: 'home' as TeamSide,
+    id: homeTeamInputMode.value === 'existing' ? form.homeTeamId : '',
+    name:
+      homeTeamInputMode.value === 'existing'
+        ? teams.value.find((team) => team.id === form.homeTeamId)?.name ?? '主队'
+        : normalizeTeamName(form.homeTeamName) || '自定义主队'
+  },
+  {
+    side: 'away' as TeamSide,
+    id: awayTeamInputMode.value === 'existing' ? form.awayTeamId : '',
+    name:
+      awayTeamInputMode.value === 'existing'
+        ? teams.value.find((team) => team.id === form.awayTeamId)?.name ?? '客队'
+        : normalizeTeamName(form.awayTeamName) || '自定义客队'
+  }
+])
 
 onMounted(async () => {
   const [teamRows, playerRows] = await Promise.all([getManagedTeams(), getManagedPlayers()])
@@ -200,6 +225,11 @@ onMounted(async () => {
 
 function playersForTeam(teamId: string) {
   return players.value.filter((player) => player.teamId === teamId)
+}
+
+function playersForMatchTeam(teamSide: TeamSide | '') {
+  const team = matchTeams.value.find((item) => item.side === teamSide)
+  return team?.id ? playersForTeam(team.id) : []
 }
 
 function normalizeTeamName(name: string) {
@@ -226,8 +256,10 @@ function resetTeamInput(side: TeamSide) {
 function addStatRow() {
   statRows.value.push({
     localId: nextRowId,
-    teamId: form.homeTeamId,
+    teamSide: 'home',
     playerId: '',
+    playerName: '',
+    playerInputMode: 'custom',
     points: 0,
     rebounds: 0,
     assists: 0
@@ -237,6 +269,11 @@ function addStatRow() {
 
 function removeStatRow(localId: number) {
   statRows.value = statRows.value.filter((row) => row.localId !== localId)
+}
+
+function resetStatPlayer(row: StatRow) {
+  row.playerId = ''
+  row.playerName = ''
 }
 
 function validateForm() {
@@ -262,9 +299,13 @@ function validateForm() {
   ) {
     return '主队和客队不能相同'
   }
-  const incompleteRow = statRows.value.find((row) => !row.teamId || !row.playerId)
+  const incompleteRow = statRows.value.find((row) => {
+    const playerMissing =
+      row.playerInputMode === 'existing' ? !row.playerId : !normalizeTeamName(row.playerName)
+    return !row.teamSide || playerMissing
+  })
   if (incompleteRow) {
-    return '技术统计行需要选择球队和球员'
+    return '技术统计行需要选择球队，并选择或填写球员'
   }
   return ''
 }
@@ -288,13 +329,16 @@ async function submitMatch() {
       homeScore: form.homeScore,
       awayScore: form.awayScore,
       status: form.status,
-      statistics: statRows.value.map(({ teamId, playerId, points, rebounds, assists }) => ({
-        teamId,
-        playerId,
-        points,
-        rebounds,
-        assists
-      }))
+      statistics: statRows.value.map(
+        ({ teamSide, playerId, playerName, playerInputMode, points, rebounds, assists }) => ({
+          teamSide,
+          playerId: playerInputMode === 'existing' ? playerId : '',
+          playerName: playerInputMode === 'custom' ? playerName : '',
+          points,
+          rebounds,
+          assists
+        })
+      )
     })
     await router.push(`/manage/matches/${match.id}`)
   } catch (error) {

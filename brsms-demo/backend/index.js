@@ -72,6 +72,13 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
+  CREATE TABLE IF NOT EXISTS manual_players (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    team_id TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
   INSERT OR IGNORE INTO teams (id, name) VALUES ('team-home', '主队');
   INSERT OR IGNORE INTO teams (id, name) VALUES ('team-guest', '客队');
 `);
