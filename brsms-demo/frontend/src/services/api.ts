@@ -66,6 +66,14 @@ export function createManagedMatch(payload: Record<string, unknown>) {
   })
 }
 
+export function updateManagedMatch(matchId: string, payload: Record<string, unknown>) {
+  return request(`/api/manage/matches/${matchId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+}
+
 export function getManagementMetadata() {
   return request('/api/manage/metadata')
 }

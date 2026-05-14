@@ -16,6 +16,7 @@ const router = createRouter({
     { path: '/manage', name: 'manage-home', component: ManagementHomeView },
     { path: '/manage/matches', name: 'manage-matches', component: MatchManagementView },
     { path: '/manage/matches/new', name: 'manage-match-new', component: MatchEntryView },
+    { path: '/manage/matches/:matchId/edit', name: 'manage-match-edit', component: MatchEntryView },
     { path: '/manage/matches/:matchId', name: 'manage-match-detail', component: MatchDetailView },
     { path: '/manage/teams', name: 'manage-teams', component: TeamPlayerManagementView },
     { path: '/manage/statistics', name: 'manage-statistics', component: StatisticsView },

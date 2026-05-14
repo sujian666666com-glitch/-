@@ -3,6 +3,14 @@
     <div class="container">
       <section class="content-panel" v-if="match">
         <router-link to="/manage/matches" class="pill">返回比赛目录</router-link>
+        <router-link
+          v-if="match.source === 'manual'"
+          :to="`/manage/matches/${match.id}/edit`"
+          class="pill"
+          style="margin-left: 8px;"
+        >
+          编辑成绩
+        </router-link>
         <h2 style="margin-top: 16px;">{{ match.homeTeamName }} vs {{ match.awayTeamName }}</h2>
         <p>{{ match.matchDate || '无日期' }} {{ match.matchTime || '' }} / {{ match.venue || '场馆待定' }}</p>
 

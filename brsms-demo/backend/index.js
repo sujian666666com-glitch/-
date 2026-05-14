@@ -247,6 +247,15 @@ app.post('/api/manage/matches', (req, res) => {
   }
 });
 
+app.put('/api/manage/matches/:id', (req, res) => {
+  try {
+    const match = repository.updateManagedMatch(req.params.id, req.body);
+    res.json(match);
+  } catch (error) {
+    handleRepositoryError(res, error);
+  }
+});
+
 app.get('/api/manage/matches/:id', (req, res) => {
   try {
     const match = repository.getManagedMatch(req.params.id);

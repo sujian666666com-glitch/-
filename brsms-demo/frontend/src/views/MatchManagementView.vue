@@ -41,6 +41,13 @@
               <td><span class="pill">{{ match.status }}</span></td>
               <td>
                 <router-link class="btn btn-primary" :to="`/manage/matches/${match.id}`">详情</router-link>
+                <router-link
+                  v-if="match.source === 'manual'"
+                  class="btn btn-warning"
+                  :to="`/manage/matches/${match.id}/edit`"
+                >
+                  编辑
+                </router-link>
               </td>
             </tr>
           </tbody>

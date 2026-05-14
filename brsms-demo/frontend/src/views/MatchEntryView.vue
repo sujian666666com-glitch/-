@@ -2,8 +2,8 @@
   <div class="page-shell">
     <div class="library-shell container">
       <aside class="library-sidebar">
-        <h1>录入成绩</h1>
-        <p>录入已结束或待确认比赛的基础比分，并补充球员关键技术统计。</p>
+        <h1>{{ isEditMode ? '编辑成绩' : '录入成绩' }}</h1>
+        <p>{{ isEditMode ? '修改手工录入比赛的基础比分与球员关键技术统计。' : '录入已结束或待确认比赛的基础比分，并补充球员关键技术统计。' }}</p>
         <nav class="library-nav">
           <router-link to="/manage">总览</router-link>
           <router-link to="/manage/matches">比赛目录</router-link>
@@ -15,6 +15,7 @@
 
       <section class="content-panel">
         <h2>比赛基础信息</h2>
+        <p v-if="loading" class="empty-note">正在加载比赛成绩...</p>
         <form class="entry-form" @submit.prevent="submitMatch">
           <div class="form-grid">
             <label>
@@ -132,7 +133,7 @@
 
           <div class="form-actions">
             <button class="btn btn-success" type="submit" :disabled="submitting">
-              {{ submitting ? '保存中...' : '保存成绩' }}
+              {{ submitting ? '保存中...' : isEditMode ? '更新成绩' : '保存成绩' }}
             </button>
             <router-link class="btn btn-primary" to="/manage/matches">返回比赛目录</router-link>
           </div>
@@ -144,8 +145,14 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { createManagedMatch, getManagedPlayers, getManagedTeams } from '@/services/api'
+import { useRoute, useRouter } from 'vue-router'
+import {
+  createManagedMatch,
+  getManagedMatch,
+  getManagedPlayers,
+  getManagedTeams,
+  updateManagedMatch
+} from '@/services/api'
 
 type Team = {
   id: string
@@ -174,14 +181,19 @@ type TeamSide = 'home' | 'away'
 type PlayerInputMode = 'existing' | 'custom'
 
 const router = useRouter()
+const route = useRoute()
 const teams = ref<Team[]>([])
 const players = ref<Player[]>([])
 const statRows = ref<StatRow[]>([])
 const submitting = ref(false)
+const loading = ref(false)
 const errorMessage = ref('')
 const homeTeamInputMode = ref<TeamInputMode>('existing')
 const awayTeamInputMode = ref<TeamInputMode>('existing')
 let nextRowId = 1
+
+const editMatchId = computed(() => String(route.params.matchId ?? ''))
+const isEditMode = computed(() => Boolean(editMatchId.value))
 
 const form = reactive({
   tournamentType: '联赛',
@@ -216,11 +228,17 @@ const matchTeams = computed(() => [
 ])
 
 onMounted(async () => {
+  loading.value = true
   const [teamRows, playerRows] = await Promise.all([getManagedTeams(), getManagedPlayers()])
   teams.value = teamRows
   players.value = playerRows
-  form.homeTeamId = defaultExistingTeamId('home')
-  form.awayTeamId = defaultExistingTeamId('away')
+  if (isEditMode.value) {
+    await loadEditableMatch()
+  } else {
+    form.homeTeamId = defaultExistingTeamId('home')
+    form.awayTeamId = defaultExistingTeamId('away')
+  }
+  loading.value = false
 })
 
 function playersForTeam(teamId: string) {
@@ -276,6 +294,67 @@ function resetStatPlayer(row: StatRow) {
   row.playerName = ''
 }
 
+function setTeamInput(side: TeamSide, teamId: string, teamName: string) {
+  const exists = teams.value.some((team) => team.id === teamId)
+  if (side === 'home') {
+    homeTeamInputMode.value = exists ? 'existing' : 'custom'
+    form.homeTeamId = exists ? teamId : ''
+    form.homeTeamName = exists ? '' : teamName
+    return
+  }
+  awayTeamInputMode.value = exists ? 'existing' : 'custom'
+  form.awayTeamId = exists ? teamId : ''
+  form.awayTeamName = exists ? '' : teamName
+}
+
+function statTeamSide(teamId: string): TeamSide | '' {
+  if (teamId === form.homeTeamId) {
+    return 'home'
+  }
+  if (teamId === form.awayTeamId) {
+    return 'away'
+  }
+  return ''
+}
+
+function buildStatRow(stat: any): StatRow {
+  const teamSide = statTeamSide(String(stat.teamId ?? ''))
+  const playerExists = players.value.some((player) => player.id === stat.playerId)
+  const row = {
+    localId: nextRowId,
+    teamSide,
+    playerId: playerExists ? String(stat.playerId) : '',
+    playerName: playerExists ? '' : String(stat.playerName ?? ''),
+    playerInputMode: playerExists ? 'existing' : 'custom',
+    points: Number(stat.points ?? 0),
+    rebounds: Number(stat.rebounds ?? 0),
+    assists: Number(stat.assists ?? 0)
+  } satisfies StatRow
+  nextRowId += 1
+  return row
+}
+
+async function loadEditableMatch() {
+  try {
+    const match = await getManagedMatch(editMatchId.value)
+    if (match.source !== 'manual') {
+      errorMessage.value = '该比赛不是手工录入成绩，不能通过成绩录入页修改'
+      return
+    }
+    form.tournamentType = match.tournamentType ?? '联赛'
+    form.matchDate = match.matchDate ?? ''
+    form.venue = match.venue ?? ''
+    form.homeScore = Number(match.homeScore ?? 0)
+    form.awayScore = Number(match.awayScore ?? 0)
+    form.status = match.status ?? '已结束'
+    setTeamInput('home', String(match.homeTeamId ?? ''), String(match.homeTeamName ?? ''))
+    setTeamInput('away', String(match.awayTeamId ?? ''), String(match.awayTeamName ?? ''))
+    statRows.value = Array.isArray(match.statistics) ? match.statistics.map(buildStatRow) : []
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : '加载比赛成绩失败'
+  }
+}
+
 function validateForm() {
   const homeTeamName = normalizeTeamName(form.homeTeamName)
   const awayTeamName = normalizeTeamName(form.awayTeamName)
@@ -318,7 +397,7 @@ async function submitMatch() {
 
   submitting.value = true
   try {
-    const match = await createManagedMatch({
+    const payload = {
       tournamentType: form.tournamentType,
       matchDate: form.matchDate,
       venue: form.venue,
@@ -339,7 +418,10 @@ async function submitMatch() {
           assists
         })
       )
-    })
+    }
+    const match = isEditMode.value
+      ? await updateManagedMatch(editMatchId.value, payload)
+      : await createManagedMatch(payload)
     await router.push(`/manage/matches/${match.id}`)
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '保存成绩失败'

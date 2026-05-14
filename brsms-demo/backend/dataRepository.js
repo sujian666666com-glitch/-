@@ -461,6 +461,22 @@ export function createDataRepository({ dataDir, liveDb }) {
     return `M${String(maxNumber + 1).padStart(5, '0')}`;
   }
 
+  function assertManualMatchEditable(matchId) {
+    const normalizedMatchId = String(matchId ?? '').trim();
+    if (!normalizedMatchId) {
+      raiseValidation('比赛编号不能为空');
+    }
+    const match = liveDb
+      .prepare('SELECT id FROM manual_matches WHERE id = ?')
+      .get(normalizedMatchId);
+    if (!match) {
+      const error = new Error('该比赛不是手工录入成绩，不能通过成绩录入页修改');
+      error.statusCode = 400;
+      throw error;
+    }
+    return normalizedMatchId;
+  }
+
   function resolveTeamId(teamId, teamName, fieldLabel) {
     const normalizedTeamId = String(teamId ?? '').trim();
     const normalizedTeamName = normalizeTeamName(teamName);
@@ -646,6 +662,62 @@ export function createDataRepository({ dataDir, liveDb }) {
 
       const matchId = createMatch();
       return this.getManagedMatch(matchId);
+    },
+    updateManagedMatch(matchId, input) {
+      const updateMatch = liveDb.transaction(() => {
+        const normalizedMatchId = assertManualMatchEditable(matchId);
+        const data = validateManagedMatchInput(input);
+        liveDb
+          .prepare(
+            `UPDATE manual_matches
+             SET tournament_type = ?,
+                 match_date = ?,
+                 venue = ?,
+                 home_team_id = ?,
+                 away_team_id = ?,
+                 home_score = ?,
+                 away_score = ?,
+                 winner_team_id = ?,
+                 status = ?
+             WHERE id = ?`
+          )
+          .run(
+            data.tournamentType,
+            data.matchDate,
+            data.venue,
+            data.homeTeamId,
+            data.awayTeamId,
+            data.homeScore,
+            data.awayScore,
+            data.winnerTeamId,
+            data.status,
+            normalizedMatchId
+          );
+
+        liveDb.prepare('DELETE FROM manual_match_statistics WHERE match_id = ?').run(normalizedMatchId);
+        data.statistics.forEach((stat, index) => {
+          liveDb
+            .prepare(
+              `INSERT INTO manual_match_statistics (
+                id, match_id, player_id, team_id, points, rebounds, assists
+              ) VALUES (?, ?, ?, ?, ?, ?, ?)`
+            )
+            .run(
+              `${normalizedMatchId}-S${String(index + 1).padStart(3, '0')}`,
+              normalizedMatchId,
+              stat.playerId,
+              stat.teamId,
+              stat.points,
+              stat.rebounds,
+              stat.assists
+            );
+        });
+
+        return normalizedMatchId;
+      });
+
+      const updatedMatchId = updateMatch();
+      return this.getManagedMatch(updatedMatchId);
     },
     listManagedMatches(filters = {}) {
       const records = assertDataAvailable(normalizeManagedMatches(), '比赛');
