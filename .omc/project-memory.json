@@ -1,0 +1,87 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1778687299750,
+  "projectRoot": "/Users/ik/Desktop/01_开发项目/zq",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "docs"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "brsms-demo": {
+      "path": "brsms-demo",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1778687299743,
+      "keyFiles": [
+        "README.md"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 20,
+      "lastAccessed": 1778687299743,
+      "keyFiles": [
+        "build_midterm_assessment.py",
+        "create_thesis_docx.js",
+        "format_thesis_docx_like_reference.py",
+        "generate_thesis.py",
+        "generate_thesis_docx.js"
+      ]
+    },
+    "openspec": {
+      "path": "openspec",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1778687299744,
+      "keyFiles": [
+        "config.yaml"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "",
+      "accessCount": 1,
+      "lastAccessed": 1778687315210,
+      "type": "directory"
+    }
+  ],
+  "userDirectives": []
+}
