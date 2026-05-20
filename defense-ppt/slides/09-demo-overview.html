@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif; display: flex;
+}
+.sidebar { width: 8pt; background: #4E9F3D; }
+.main { flex: 1; padding: 24pt 32pt; display: flex; flex-direction: column; }
+.header { border-left: 6pt solid #4E9F3D; padding-left: 14pt; margin-bottom: 10pt; }
+.header h1 { margin: 0; font-size: 22pt; color: #191A19; }
+.content { display: flex; gap: 16pt; flex: 1; align-items: center; }
+.text { flex: 0.55; }
+.text h3 { margin: 0 0 8pt 0; font-size: 14pt; color: #1E5128; }
+.text ul { margin: 0; padding-left: 16pt; }
+.text li { font-size: 11pt; color: #333333; line-height: 1.6; }
+.img-wrap { flex: 0.45; background: #FFFFFF; border-radius: 6pt; padding: 6pt; border: 1pt solid #DDDDDD; }
+.img-wrap img { width: 100%; height: auto; display: block; border-radius: 4pt; }
+.caption { margin: 6pt 0 0 0; font-size: 9pt; color: #888888; text-align: center; }
+</style>
+</head>
+<body>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="header"><h1>5. 系统实现 — 管理端总览</h1></div>
+  <div class="content">
+    <div class="text">
+      <h3>brsms-demo 演示系统</h3>
+      <ul>
+        <li>440场比赛 · 40支球队 · 5种球类</li>
+        <li>比赛/球队/球员/技术统计统一管理</li>
+        <li>SpringBoot + Vue3 + SQLite 轻量化部署</li>
+        <li>CSV批量导入，支持本地比赛场景</li>
+      </ul>
+    </div>
+    <div class="img-wrap">
+      <div id="screenshot" class="placeholder" style="width: 100%; height: 180pt;"></div>
+      <p class="caption">图4-1 管理端系统总览界面</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

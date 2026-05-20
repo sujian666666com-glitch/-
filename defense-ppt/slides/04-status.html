@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif; display: flex;
+}
+.sidebar { width: 8pt; background: #4E9F3D; }
+.main { flex: 1; padding: 30pt 38pt; display: flex; flex-direction: column; }
+.header { border-left: 6pt solid #4E9F3D; padding-left: 14pt; margin-bottom: 16pt; }
+.header h1 { margin: 0; font-size: 24pt; color: #191A19; }
+.cols { display: flex; gap: 16pt; flex: 1; }
+.col { flex: 1; }
+.card { background: #FFFFFF; border-radius: 6pt; padding: 14pt; margin-bottom: 10pt; }
+.card h3 { margin: 0 0 6pt 0; font-size: 12pt; color: #1E5128; }
+.card p { margin: 0; font-size: 10pt; color: #444444; line-height: 1.45; }
+.gap { background: #191A19; border-radius: 6pt; padding: 14pt; margin-top: 4pt; }
+.gap h3 { margin: 0 0 8pt 0; font-size: 13pt; color: #F39C12; }
+.gap ul { margin: 0; padding-left: 16pt; }
+.gap li { font-size: 10pt; color: #F4F6F6; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="header"><h1>2. 国内外研究现状</h1></div>
+  <div class="cols">
+    <div class="col">
+      <div class="card">
+        <h3>国外：商业系统成熟</h3>
+        <p>STACT（NBA/英超）、Hawk-Eye（计算机视觉）、SportsCode 等，实时延迟≤100ms，但年授权费数千至数万美元。</p>
+      </div>
+      <div class="card">
+        <h3>国内：逐步推进</h3>
+        <p>高东杯赛事系统（200+城市）、商汤篮球AI（CBA试点）、高校运动会管理系统等，但实时性与跨球类适配不足。</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="gap">
+        <h3>现有研究不足</h3>
+        <ul>
+          <li>单一球类适配，缺乏通用规则引擎</li>
+          <li>数据孤岛，难以对接教务/报名系统</li>
+          <li>HTTP轮询延迟高，缺乏离线容错</li>
+          <li>商业系统成本门槛高，开源方案功能单一</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

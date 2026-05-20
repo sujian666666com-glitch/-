@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif; display: flex;
+}
+.sidebar { width: 8pt; background: #4E9F3D; }
+.main { flex: 1; padding: 28pt 36pt; display: flex; flex-direction: column; }
+.header { border-left: 6pt solid #4E9F3D; padding-left: 14pt; margin-bottom: 14pt; }
+.header h1 { margin: 0; font-size: 24pt; color: #191A19; }
+.content { display: flex; gap: 16pt; flex: 1; }
+.left { flex: 1; }
+.code {
+  background: #191A19; border-radius: 6pt; padding: 14pt;
+  font-family: Courier New, monospace;
+}
+.code p { margin: 0 0 4pt 0; font-size: 10pt; color: #4E9F3D; line-height: 1.5; }
+.code .key { color: #F39C12; }
+.right { flex: 1; display: flex; flex-direction: column; gap: 10pt; }
+.feature { background: #FFFFFF; border-radius: 6pt; padding: 12pt 14pt; }
+.feature h3 { margin: 0 0 6pt 0; font-size: 12pt; color: #1E5128; }
+.feature p { margin: 0; font-size: 10pt; color: #444444; line-height: 1.45; }
+</style>
+</head>
+<body>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="header"><h1>4.1 BGEMM 球类通用事件元模型</h1></div>
+  <div class="content">
+    <div class="left">
+      <div class="code">
+        <p><span class="key">BGEMM</span> = {</p>
+        <p>&nbsp; EventType: "得分/犯规/暂停/换人",</p>
+        <p>&nbsp; Participant: "主队/客队/球员编号",</p>
+        <p>&nbsp; Location: "场地位置(x,y)",</p>
+        <p>&nbsp; Timestamp: "UTC时间戳",</p>
+        <p>&nbsp; Value: "分值/类型/参数",</p>
+        <p>&nbsp; State: "当前比分/节次/回合"</p>
+        <p>}</p>
+      </div>
+    </div>
+    <div class="right">
+      <div class="feature">
+        <h3>六元组统一抽象</h3>
+        <p>借鉴IEEE P2414标准，统一篮球、排球、羽毛球、乒乓球的事件特征表达。</p>
+      </div>
+      <div class="feature">
+        <h3>Lua脚本热插拔</h3>
+        <p>规则以Lua脚本存储，5秒内完成加载与验证，支持38种规则配置秒级切换。</p>
+      </div>
+      <div class="feature">
+        <h3>跨球类适配示例</h3>
+        <p>篮球：4节累计计分 | 排球：5局3胜25分 | 羽毛球/乒乓球：局分累计制</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

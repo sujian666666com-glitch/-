@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1778687299750,
+  "lastScanned": 1779266373103,
   "projectRoot": "/Users/ik/Desktop/01_开发项目/zq",
   "techStack": {
     "languages": [
@@ -47,7 +47,7 @@
       "path": "brsms-demo",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1778687299743,
+      "lastAccessed": 1779266373096,
       "keyFiles": [
         "README.md"
       ]
@@ -56,7 +56,7 @@
       "path": "docs",
       "purpose": "Documentation",
       "fileCount": 20,
-      "lastAccessed": 1778687299743,
+      "lastAccessed": 1779266373096,
       "keyFiles": [
         "build_midterm_assessment.py",
         "create_thesis_docx.js",
@@ -69,7 +69,7 @@
       "path": "openspec",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1778687299744,
+      "lastAccessed": 1779266373098,
       "keyFiles": [
         "config.yaml"
       ]
@@ -78,9 +78,21 @@
   "hotPaths": [
     {
       "path": "",
-      "accessCount": 1,
-      "lastAccessed": 1778687315210,
+      "accessCount": 2,
+      "lastAccessed": 1779266383330,
       "type": "directory"
+    },
+    {
+      "path": "start.sh",
+      "accessCount": 1,
+      "lastAccessed": 1779266390436,
+      "type": "file"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 1,
+      "lastAccessed": 1779266390488,
+      "type": "file"
     }
   ],
   "userDirectives": []

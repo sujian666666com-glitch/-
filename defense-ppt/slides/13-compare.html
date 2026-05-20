@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif; display: flex;
+}
+.sidebar { width: 8pt; background: #4E9F3D; }
+.main { flex: 1; padding: 26pt 34pt; display: flex; flex-direction: column; }
+.header { border-left: 6pt solid #4E9F3D; padding-left: 14pt; margin-bottom: 12pt; }
+.header h1 { margin: 0; font-size: 24pt; color: #191A19; }
+.content { display: flex; gap: 14pt; flex: 1; }
+.table-wrap { flex: 1.2; background: #FFFFFF; border-radius: 6pt; padding: 10pt; }
+.table-wrap h3 { margin: 0 0 8pt 0; font-size: 12pt; color: #1E5128; }
+table { width: 100%; border-collapse: collapse; }
+th { background: #1E5128; color: #FFFFFF; font-size: 9pt; padding: 6pt 8pt; text-align: center; }
+td { font-size: 9pt; padding: 6pt 8pt; text-align: center; border-bottom: 1pt solid #EEEEEE; color: #333333; }
+td.win { color: #4E9F3D; font-weight: bold; }
+.right { flex: 0.8; display: flex; flex-direction: column; gap: 10pt; }
+.note { background: #191A19; border-radius: 6pt; padding: 12pt; }
+.note h3 { margin: 0 0 6pt 0; font-size: 12pt; color: #F39C12; }
+.note p { margin: 0; font-size: 10pt; color: #F4F6F6; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="header"><h1>6.1 对比实验</h1></div>
+  <div class="content">
+    <div class="table-wrap">
+      <h3>与人工记录 / STACT 系统对比</h3>
+      <table>
+        <tr><th>对比维度</th><th>人工记录</th><th>STACT</th><th>本系统</th></tr>
+        <tr><td>记录耗时(80次操作)</td><td>~25分钟</td><td>~8分钟</td><td class="win">~3分钟</td></tr>
+        <tr><td>同步延迟</td><td>30-120秒</td><td>5-10秒</td><td class="win">&lt;200ms</td></tr>
+        <tr><td>错误率</td><td>~5%</td><td>~2%</td><td class="win">&lt;0.5%</td></tr>
+        <tr><td>支持球类</td><td>通用</td><td>主要篮球</td><td class="win">5种球类</td></tr>
+        <tr><td>技术统计</td><td>无</td><td>仅比分</td><td class="win">17项指标</td></tr>
+        <tr><td>硬件成本</td><td>低</td><td>高</td><td class="win">317元/套</td></tr>
+      </table>
+    </div>
+    <div class="right">
+      <div class="note">
+        <h3>vs 人工记录</h3>
+        <p>按钮操作即时记录，WebSocket多终端同步，消除笔误与延迟风险。</p>
+      </div>
+      <div class="note">
+        <h3>vs STACT</h3>
+        <p>WebSocket替代HTTP轮询，实时性提升10-50倍；支持多球类与深度技术统计。</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

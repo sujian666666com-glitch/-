@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif; display: flex;
+}
+.sidebar { width: 8pt; background: #4E9F3D; }
+.main { flex: 1; padding: 22pt 30pt; display: flex; flex-direction: column; }
+.header { border-left: 6pt solid #4E9F3D; padding-left: 14pt; margin-bottom: 8pt; }
+.header h1 { margin: 0; font-size: 22pt; color: #191A19; }
+.imgs { display: flex; gap: 12pt; flex: 1; }
+.panel { flex: 1; display: flex; flex-direction: column; }
+.panel h3 { margin: 0 0 6pt 0; font-size: 12pt; color: #1E5128; }
+.img-wrap { flex: 1; background: #FFFFFF; border-radius: 6pt; padding: 5pt; border: 1pt solid #DDDDDD; }
+.img-wrap img { width: 100%; height: auto; display: block; border-radius: 4pt; }
+.caption { margin: 4pt 0 0 0; font-size: 9pt; color: #888888; text-align: center; }
+</style>
+</head>
+<body>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="header"><h1>5. 系统实现 — 比赛管理与成绩录入</h1></div>
+  <div class="imgs">
+    <div class="panel">
+      <h3>比赛目录查询</h3>
+      <div class="img-wrap">
+        <div id="shot-left" class="placeholder" style="width: 100%; height: 155pt;"></div>
+      </div>
+      <p class="caption">图4-2 按队伍/场馆检索</p>
+    </div>
+    <div class="panel">
+      <h3>成绩录入界面</h3>
+      <div class="img-wrap">
+        <div id="shot-right" class="placeholder" style="width: 100%; height: 155pt;"></div>
+      </div>
+      <p class="caption">图4-3 比分与技术统计一体化录入</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

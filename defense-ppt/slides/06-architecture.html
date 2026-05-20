@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif; display: flex;
+}
+.sidebar { width: 8pt; background: #4E9F3D; }
+.main { flex: 1; padding: 28pt 36pt; display: flex; flex-direction: column; }
+.header { border-left: 6pt solid #4E9F3D; padding-left: 14pt; margin-bottom: 14pt; }
+.header h1 { margin: 0; font-size: 24pt; color: #191A19; }
+.content { display: flex; gap: 16pt; flex: 1; }
+.left { flex: 1.1; display: flex; flex-direction: column; gap: 8pt; }
+.layer {
+  background: #FFFFFF; border-radius: 6pt; padding: 12pt 14pt;
+  border-left: 5pt solid #4E9F3D; display: flex; flex-direction: column;
+}
+.layer.cloud { border-left-color: #191A19; }
+.layer.edge { border-left-color: #1E5128; }
+.layer.device { border-left-color: #4E9F3D; }
+.layer h3 { margin: 0 0 4pt 0; font-size: 13pt; color: #191A19; }
+.layer p { margin: 0; font-size: 10pt; color: #555555; line-height: 1.4; }
+.right { flex: 0.9; background: #191A19; border-radius: 6pt; padding: 14pt; }
+.right h3 { margin: 0 0 10pt 0; font-size: 13pt; color: #F39C12; }
+.flow { background: rgba(255,255,255,0.08); border-radius: 4pt; padding: 10pt; margin-bottom: 8pt; }
+.flow p { margin: 0; font-size: 10pt; color: #E8F5E9; line-height: 1.5; font-family: Courier New, monospace; }
+</style>
+</head>
+<body>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="header"><h1>4. 系统总体架构</h1></div>
+  <div class="content">
+    <div class="left">
+      <div class="layer cloud">
+        <h3>云端服务层</h3>
+        <p>SpringBoot 3.2 + Vue3 大屏 | InfluxDB时序库 + MySQL | 赛事管理/统计分析/多屏展示</p>
+      </div>
+      <div class="layer edge">
+        <h3>边缘网关层</h3>
+        <p>树莓派4B + Docker | Netty事件总线 | Redis缓存 | WebSocket推送 | MQTT协议转换</p>
+      </div>
+      <div class="layer device">
+        <h3>终端设备层</h3>
+        <p>ESP32-S3 + 4.3"触摸屏 | Lua规则引擎 | SQLite离线存储 | MQTT上报</p>
+      </div>
+    </div>
+    <div class="right">
+      <h3>数据流路径</h3>
+      <div class="flow"><p>裁判终端 → MQTT → 边缘网关</p></div>
+      <div class="flow"><p>边缘网关 → WebSocket → 大屏客户端</p></div>
+      <div class="flow"><p>SQLite本地缓存 → 增量同步 → 云端InfluxDB</p></div>
+      <div class="flow"><p>端到端延迟 ≈ 186ms (P95: 186ms)</p></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

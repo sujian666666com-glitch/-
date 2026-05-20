@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif; display: flex;
+}
+.sidebar { width: 8pt; background: #4E9F3D; }
+.main { flex: 1; padding: 24pt 34pt 36pt 34pt; display: flex; flex-direction: column; }
+.header { border-left: 6pt solid #4E9F3D; padding-left: 14pt; margin-bottom: 12pt; }
+.header h1 { margin: 0; font-size: 24pt; color: #191A19; }
+.grid { display: flex; flex-wrap: wrap; gap: 10pt; flex: 1; }
+.item {
+  width: 300pt; background: #FFFFFF; border-radius: 6pt; padding: 11pt 14pt;
+  display: flex; gap: 10pt; align-items: flex-start;
+}
+.num { background: #4E9F3D; color: #FFFFFF; min-width: 22pt; height: 22pt; border-radius: 50%; text-align: center; }
+.num p { margin: 0; font-size: 11pt; font-weight: bold; line-height: 22pt; }
+.body h3 { margin: 0 0 3pt 0; font-size: 12pt; color: #191A19; }
+.body p { margin: 0; font-size: 9pt; color: #555555; line-height: 1.4; }
+</style>
+</head>
+<body>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="header"><h1>7. 主要创新点</h1></div>
+  <div class="grid">
+    <div class="item">
+      <div class="num"><p>1</p></div>
+      <div class="body">
+        <h3>三层离线容错架构</h3>
+        <p>终端-边缘-云端各层本地持久化与断网续传，弱网环境下数据不丢失、业务不中断。</p>
+      </div>
+    </div>
+    <div class="item">
+      <div class="num"><p>2</p></div>
+      <div class="body">
+        <h3>BGEMM跨球类规则引擎</h3>
+        <p>六元组元模型 + Lua热插拔，38种规则秒级切换，统一抽象多种球类事件。</p>
+      </div>
+    </div>
+    <div class="item">
+      <div class="num"><p>3</p></div>
+      <div class="body">
+        <h3>双协议实时通信总线</h3>
+        <p>WebSocket面向浏览器大屏，MQTT面向嵌入式终端，端到端延迟≤200ms。</p>
+      </div>
+    </div>
+    <div class="item">
+      <div class="num"><p>4</p></div>
+      <div class="body">
+        <h3>开源低成本硬件方案</h3>
+        <p>ESP32-S3终端BOM≤317元，开放硬件设计/固件/部署镜像，降低推广门槛90%+。</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

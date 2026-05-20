@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif; display: flex;
+}
+.sidebar { width: 8pt; background: #4E9F3D; }
+.main { flex: 1; padding: 32pt 40pt; display: flex; flex-direction: column; }
+.header { border-left: 6pt solid #4E9F3D; padding-left: 14pt; margin-bottom: 20pt; }
+.header h1 { margin: 0; font-size: 24pt; color: #191A19; }
+.cols { display: flex; gap: 20pt; flex: 1; }
+.col { flex: 1; }
+.box { background: #FFFFFF; border-radius: 6pt; padding: 16pt; margin-bottom: 12pt; border-top: 3pt solid #4E9F3D; }
+.box h3 { margin: 0 0 8pt 0; font-size: 14pt; color: #1E5128; }
+.box p { margin: 0; font-size: 11pt; color: #333333; line-height: 1.5; }
+.highlight { background: #1E5128; border-radius: 6pt; padding: 14pt 16pt; }
+.highlight p { margin: 0; font-size: 11pt; color: #FFFFFF; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="header"><h1>1. 研究背景与意义</h1></div>
+  <div class="cols">
+    <div class="col">
+      <div class="box">
+        <h3>数字化转型趋势</h3>
+        <p>2024年全球体育科技市场规模约280亿美元，高校每年举办体育赛事超50万场，涵盖十余个球类项目。</p>
+      </div>
+      <div class="box">
+        <h3>传统方式痛点</h3>
+        <p>纸质记录、人工统计效率低、易出错，从得分到显示平均延迟30-120秒，实时性严重不足。</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="box">
+        <h3>三大技术挑战</h3>
+        <ul>
+          <li><b>实时性</b>：毫秒级数据同步需求</li>
+          <li><b>多球类适配</b>：规则差异显著</li>
+          <li><b>多终端显示</b>：大屏/移动/Web统一推送</li>
+        </ul>
+      </div>
+      <div class="highlight">
+        <p><b>研究意义：</b>设计低成本、跨球类、毫秒级、可扩展的通用赛事管理平台，填补高校及基层体育赛事数字化管理空白。</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

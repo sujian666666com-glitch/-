@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif; display: flex;
+}
+.sidebar { width: 8pt; background: #4E9F3D; }
+.main { flex: 1; padding: 26pt 34pt; display: flex; flex-direction: column; }
+.header { border-left: 6pt solid #4E9F3D; padding-left: 14pt; margin-bottom: 12pt; }
+.header h1 { margin: 0; font-size: 24pt; color: #191A19; }
+.content { display: flex; gap: 16pt; flex: 1; }
+.left { flex: 1; display: flex; flex-direction: column; gap: 8pt; }
+.row { display: flex; gap: 8pt; }
+.stat { flex: 1; background: #1E5128; border-radius: 6pt; padding: 12pt; text-align: center; }
+.stat h2 { margin: 0; font-size: 20pt; color: #F39C12; }
+.stat p { margin: 4pt 0 0 0; font-size: 9pt; color: #FFFFFF; }
+.list { background: #FFFFFF; border-radius: 6pt; padding: 12pt 14pt; flex: 1; }
+.list h3 { margin: 0 0 8pt 0; font-size: 12pt; color: #1E5128; }
+.list ul { margin: 0; padding-left: 16pt; }
+.list li { font-size: 10pt; color: #444444; line-height: 1.55; }
+.chart-area { flex: 1; }
+.chart-area h3 { margin: 0 0 6pt 0; font-size: 12pt; color: #1E5128; }
+.placeholder { width: 100%; height: 210pt; background: #FFFFFF; border-radius: 6pt; border: 1pt dashed #AAAAAA; }
+</style>
+</head>
+<body>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="header"><h1>6. 实验结果与分析</h1></div>
+  <div class="content">
+    <div class="left">
+      <div class="row">
+        <div class="stat"><h2>45-110ms</h2><p>单客户端计分延迟</p></div>
+        <div class="stat"><h2>&lt;100ms</h2><p>多终端同步时间差</p></div>
+      </div>
+      <div class="row">
+        <div class="stat"><h2>500+</h2><p>并发连接稳定</p></div>
+        <div class="stat"><h2>4.4/5</h2><p>视觉效果评分</p></div>
+      </div>
+      <div class="list">
+        <h3>测试结论</h3>
+        <ul>
+          <li>功能测试覆盖率100%，边界场景正确处理</li>
+          <li>5种球类规则完整支持，切换流畅</li>
+          <li>500并发下CPU&lt;35%，丢包率为零</li>
+          <li>数据集：440场比赛，40支球队</li>
+        </ul>
+      </div>
+    </div>
+    <div class="chart-area">
+      <h3>端到端延迟分布 (ms)</h3>
+      <div id="latency-chart" class="placeholder"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

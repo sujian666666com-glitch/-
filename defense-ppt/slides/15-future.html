@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif; display: flex;
+}
+.sidebar { width: 8pt; background: #4E9F3D; }
+.main { flex: 1; padding: 28pt 36pt; display: flex; flex-direction: column; }
+.header { border-left: 6pt solid #4E9F3D; padding-left: 14pt; margin-bottom: 14pt; }
+.header h1 { margin: 0; font-size: 24pt; color: #191A19; }
+.cols { display: flex; gap: 16pt; flex: 1; }
+.col { flex: 1; border-radius: 6pt; padding: 16pt; }
+.limit { background: #FFFFFF; border-top: 3pt solid #E74C3C; }
+.future { background: #FFFFFF; border-top: 3pt solid #4E9F3D; }
+.col h3 { margin: 0 0 10pt 0; font-size: 14pt; }
+.limit h3 { color: #C0392B; }
+.future h3 { color: #1E5128; }
+.col ul { margin: 0; padding-left: 16pt; }
+.col li { font-size: 10pt; color: #444444; line-height: 1.6; margin-bottom: 4pt; }
+</style>
+</head>
+<body>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="header"><h1>8. 不足与展望</h1></div>
+  <div class="cols">
+    <div class="col limit">
+      <h3>现有不足</h3>
+      <ul>
+        <li>比分录入主要依赖人工操作，CV辅助判罚尚未实现</li>
+        <li>云端高级可视化与细粒度权限控制待完善</li>
+        <li>与教务/报名系统深度对接仍需开发</li>
+        <li>移动端原生App交互体验有提升空间</li>
+      </ul>
+    </div>
+    <div class="col future">
+      <h3>未来展望</h3>
+      <ul>
+        <li>引入YOLOv8，开展出界/触网/落点自动判罚辅助</li>
+        <li>扩展BGEMM支持足球、网球，建设规则脚本共享社区</li>
+        <li>Flutter/RN跨平台移动端，差异化功能服务</li>
+        <li>数字孪生与虚拟场馆，拓展沉浸式赛事传播</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</body>
+</html>

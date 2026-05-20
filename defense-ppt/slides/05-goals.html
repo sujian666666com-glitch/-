@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif; display: flex;
+}
+.sidebar { width: 8pt; background: #4E9F3D; }
+.main { flex: 1; padding: 24pt 34pt 36pt 34pt; display: flex; flex-direction: column; }
+.header { border-left: 6pt solid #4E9F3D; padding-left: 14pt; margin-bottom: 10pt; }
+.header h1 { margin: 0; font-size: 24pt; color: #191A19; }
+.tagline { margin: 0 0 10pt 0; font-size: 11pt; color: #1E5128; font-weight: bold; }
+.grid { display: flex; flex-wrap: wrap; gap: 8pt; }
+.goal {
+  width: 200pt; background: #FFFFFF; border-radius: 6pt; padding: 10pt 12pt;
+  border-bottom: 3pt solid #4E9F3D;
+}
+.goal h3 { margin: 0 0 4pt 0; font-size: 11pt; color: #191A19; }
+.goal p { margin: 0; font-size: 9pt; color: #555555; line-height: 1.35; }
+.metric { display: flex; gap: 8pt; margin-top: 8pt; }
+.mbox { flex: 1; background: #1E5128; border-radius: 6pt; padding: 8pt; text-align: center; }
+.mbox h2 { margin: 0; font-size: 18pt; color: #F39C12; }
+.mbox p { margin: 2pt 0 0 0; font-size: 9pt; color: #FFFFFF; }
+</style>
+</head>
+<body>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="header"><h1>3. 研究目标与内容</h1></div>
+  <p class="tagline">核心定位：低成本 · 跨球类 · 毫秒级 · 可扩展 · 开源</p>
+  <div class="grid">
+    <div class="goal"><h3>四球类通用适配</h3><p>篮球/排球/羽毛球/乒乓球，BGEMM元模型，38种规则秒级切换</p></div>
+    <div class="goal"><h3>毫秒级实时同步</h3><p>WebSocket+MQTT双协议，端到端延迟≤200ms</p></div>
+    <div class="goal"><h3>低成本硬件方案</h3><p>ESP32-S3终端，BOM成本≤317元/套</p></div>
+    <div class="goal"><h3>数据互通标准</h3><p>符合GB/T 34311-2017及CUSU数据标准</p></div>
+    <div class="goal"><h3>开源生态建设</h3><p>MIT协议开源，提供完整部署文档</p></div>
+  </div>
+  <div class="metric">
+    <div class="mbox"><h2>156ms</h2><p>平均端到端延迟</p></div>
+    <div class="mbox"><h2>500+</h2><p>并发客户端连接</p></div>
+    <div class="mbox"><h2>317元</h2><p>硬件成本/套</p></div>
+    <div class="mbox"><h2>100%</h2><p>功能测试通过率</p></div>
+  </div>
+</div>
+</body>
+</html>

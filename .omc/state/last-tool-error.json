@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"lsof -nP -iTCP:5173 -sTCP:LISTEN\",\"description\":\"Check what's using port 5173\"}",
+  "error": "Exit code 1",
+  "timestamp": "2026-05-20T08:40:42.510Z",
+  "retry_count": 1
+}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif; display: flex;
+}
+.sidebar { width: 8pt; background: #4E9F3D; }
+.main { flex: 1; padding: 28pt 36pt; display: flex; flex-direction: column; }
+.header { border-left: 6pt solid #4E9F3D; padding-left: 14pt; margin-bottom: 14pt; }
+.header h1 { margin: 0; font-size: 24pt; color: #191A19; }
+.grid { display: flex; flex-wrap: wrap; gap: 10pt; flex: 1; }
+.tech { width: 200pt; background: #FFFFFF; border-radius: 6pt; padding: 12pt; }
+.tech h3 { margin: 0 0 6pt 0; font-size: 12pt; color: #1E5128; }
+.tech p { margin: 0; font-size: 10pt; color: #444444; line-height: 1.4; }
+.bottom { background: #1E5128; border-radius: 6pt; padding: 12pt 16pt; margin-top: 8pt; }
+.bottom p { margin: 0; font-size: 10pt; color: #FFFFFF; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="header"><h1>4.2 关键技术方案</h1></div>
+  <div class="grid">
+    <div class="tech">
+      <h3>WebSocket 实时通信</h3>
+      <p>全双工长连接，浏览器大屏实时推送，P95延迟186ms，替代HTTP轮询。</p>
+    </div>
+    <div class="tech">
+      <h3>MQTT + Redis Pub/Sub</h3>
+      <p>嵌入式终端MQTT上报，边缘Redis本地分发，QoS保障关键事件可靠传输。</p>
+    </div>
+    <div class="tech">
+      <h3>三层离线容错</h3>
+      <p>终端SQLite → 边缘Redis → 云端InfluxDB，断网续传，数据不丢失。</p>
+    </div>
+    <div class="tech">
+      <h3>Netty 事件驱动</h3>
+      <p>主从Reactor模型，零拷贝优化，500+并发连接CPU占用&lt;35%。</p>
+    </div>
+    <div class="tech">
+      <h3>Vue3 + Pinia</h3>
+      <p>响应式大屏渲染，PWA离线缓存，多终端自适应布局。</p>
+    </div>
+    <div class="tech">
+      <h3>混合数据库</h3>
+      <p>InfluxDB时序事件 + MySQL关系数据 + SQLite离线缓存。</p>
+    </div>
+  </div>
+  <div class="bottom">
+    <p><b>技术栈：</b>SpringBoot 3.2 · Vue 3.4 · SQLite · WebSocket · ESP32-S3 · 树莓派4B · ECharts</p>
+  </div>
+</div>
+</body>
+</html>

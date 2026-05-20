@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif; display: flex;
+}
+.sidebar { width: 8pt; background: #4E9F3D; }
+.main { flex: 1; padding: 28pt 40pt; display: flex; flex-direction: column; }
+.header { border-left: 6pt solid #4E9F3D; padding-left: 14pt; margin-bottom: 18pt; }
+.header h1 { margin: 0; font-size: 24pt; color: #191A19; }
+.grid { display: flex; flex-wrap: wrap; gap: 10pt; }
+.item {
+  width: 185pt; background: #FFFFFF; border-radius: 6pt;
+  padding: 10pt 14pt; border-left: 4pt solid #4E9F3D;
+}
+.num { background: #4E9F3D; color: #FFFFFF; width: 20pt; height: 20pt; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 6pt; }
+.num p { margin: 0; font-size: 10pt; font-weight: bold; }
+.item h3 { margin: 0; font-size: 12pt; color: #191A19; }
+</style>
+</head>
+<body>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="header"><h1>汇报提纲</h1></div>
+  <div class="grid">
+    <div class="item"><div class="num"><p>1</p></div><h3>研究背景与意义</h3></div>
+    <div class="item"><div class="num"><p>2</p></div><h3>国内外研究现状</h3></div>
+    <div class="item"><div class="num"><p>3</p></div><h3>研究目标与内容</h3></div>
+    <div class="item"><div class="num"><p>4</p></div><h3>系统总体设计</h3></div>
+    <div class="item"><div class="num"><p>5</p></div><h3>系统实现与演示</h3></div>
+    <div class="item"><div class="num"><p>6</p></div><h3>实验结果与分析</h3></div>
+    <div class="item"><div class="num"><p>7</p></div><h3>创新点总结</h3></div>
+    <div class="item"><div class="num"><p>8</p></div><h3>不足与展望</h3></div>
+  </div>
+</div>
+</body>
+</html>
